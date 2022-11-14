@@ -247,6 +247,7 @@ void AudioMixer_setVolume(int newVolume)
 //    size: the number of *values* to store into buff
 static void fillPlaybackBuffer(short *buff, int size)
 {
+	memset(buff, 0, sizeof(*buff));
 	/*
 	 * REVISIT: Implement this
 	 * 1. Wipe the buff to all 0's to clear any previous PCM data.
