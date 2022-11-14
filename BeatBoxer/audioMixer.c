@@ -11,6 +11,10 @@
 
 static snd_pcm_t *handle;
 
+#define drumSound "sounds/100051__menegass__gui-drum-bd-hard.wav"
+#define snareSound "sounds/100058__menegass__gui-drum-snare-hard.wav"
+#define highHatSound "sounds/100062__menegass__gui-drum-tom-hi-hard.wav"
+
 #define DEFAULT_VOLUME 80
 
 #define SAMPLE_RATE 44100
@@ -52,9 +56,16 @@ void AudioMixer_init(void)
 	// Initialize the currently active sound-bites being played
 	// REVISIT:- Implement this. Hint: set the pSound pointer to NULL for each
 	//     sound bite.
-	
 
-
+	wavedata_t drum;
+	AudioMixer_readWaveFileIntoMemory(drumSound, &drum);
+	AudioMixer_freeWaveFileData(&drum); //not sure about this
+	wavedata_t snare;
+	AudioMixer_readWaveFileIntoMemory(snareSound, &snare);
+	AudioMixer_freeWaveFileData(&snare); //not sure about this
+	wavedata_t highHat;
+	AudioMixer_readWaveFileIntoMemory(highHatSound, &highHat);
+	AudioMixer_freeWaveFileData(&highHat); //not sure about this
 
 	// Open the PCM output
 	int err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
