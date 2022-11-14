@@ -10,7 +10,7 @@
 
 
 static snd_pcm_t *handle;
-
+static wavedata_t drum, snare, highHat;
 #define drumSound "sounds/100051__menegass__gui-drum-bd-hard.wav"
 #define snareSound "sounds/100058__menegass__gui-drum-snare-hard.wav"
 #define highHatSound "sounds/100062__menegass__gui-drum-tom-hi-hard.wav"
@@ -57,11 +57,8 @@ void AudioMixer_init(void)
 	// REVISIT:- Implement this. Hint: set the pSound pointer to NULL for each
 	//     sound bite.
 
-	wavedata_t drum;
 	AudioMixer_readWaveFileIntoMemory(drumSound, &drum);
-	wavedata_t snare;
 	AudioMixer_readWaveFileIntoMemory(snareSound, &snare);
-	wavedata_t highHat;
 	AudioMixer_readWaveFileIntoMemory(highHatSound, &highHat);
 
 	//set everything back to NULL and zero
@@ -170,10 +167,23 @@ void AudioMixer_queueSound(wavedata_t *pSound)
 	 *    not being able to play another wave file.
 	 */
 
-
-
-
-
+	pthread_mutex_lock(&audioMutex);
+	{
+		int numberOfFreeSpaces = MAX_SOUND_BITES;
+		for(int i =0; i < MAX_SOUND_BITES; i++){
+			if(soundBites[i].pSound == NULL){
+				soundBites[i].pSound->pData = pSound->pData;
+				soundBites[i].pSound->numSamples = pSound->numSamples;
+				numberOfFreeSpaces--;
+				return;
+			} 
+		}
+		if(numberOfFreeSpaces == 0){
+			printf("No space found in queue!");
+			return;
+		}
+	}
+	pthread_mutex_unlock(&audioMutex);
 }
 
 void AudioMixer_cleanup(void)
@@ -288,7 +298,17 @@ static void fillPlaybackBuffer(short *buff, int size)
 	 *          ... use someNum vs myArray[someIdx].value;
 	 *
 	 */
-
+	pthread_mutex_lock(&audioMutex);
+	{
+		for(int i =0; i < MAX_SOUND_BITES; i++){
+			if(soundBites[i].pSound != NULL){
+				short data = soundBites[i].pSound->pData;
+				playbackBuffer[i] = data;
+			}
+			
+		}
+	}
+	pthread_mutex_unlock(&audioMutex);
 
 
 }
