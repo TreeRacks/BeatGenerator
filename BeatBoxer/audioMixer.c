@@ -6,6 +6,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 #include <limits.h>
+#include <string.h>
 #include <alloca.h> // needed for mixer
 
 
@@ -300,34 +301,54 @@ static void fillPlaybackBuffer(short *buff, int size)
 	 */
 	pthread_mutex_lock(&audioMutex);
 	{
-		int *temp, *tempAdvance;
+		short min = 0;
+		short max = 32767;
+		int *temp;
+		short *tempS;
+		temp = malloc(size * sizeof(*temp)); //make some space for temp
+		tempS = malloc(size * sizeof(*tempS));
+		memset(temp, 0, sizeof(*temp)); //clean it up before using
+		memset(tempS, 0, sizeof(*tempS));
+		
 		for(int i =0; i < MAX_SOUND_BITES; i++){ //soundBites
+
 			for(int j = 0; j < size; j++){
-				if(soundBites[i].location < soundBites[i].pSound->numSamples){
-					soundBites[i].location +=1;
-				} else if(soundBites[i].location == soundBites[i].pSound->numSamples){
-					soundBites[i].location == 0;
-					AudioMixer_freeWaveFileData(soundBites[i].pSound);
+
+				if(soundBites[i].location < soundBites[i].pSound->numSamples){ // if the location of our current sound is less than its total samples...
+
+					if(soundBites[i].pSound->pData[soundBites[i].location] != NULL){ // ...and if the data at that location exists (is not NULL)...
+						temp[j] += soundBites[i].pSound->pData[soundBites[i].location]; //...add them up in an integer array. 
+					}
+					if(temp[j] > max){ // do the clipping here
+						temp[j] = max;
+					}
+					if(temp[j] < min){
+						temp[j] = min;
+					}
+					soundBites[i].location +=1; // increment the location 
+				} else if(soundBites[i].location == soundBites[i].pSound->numSamples){ // if the location of our sound has reached the number of total samples, it has ended
+
+					soundBites[i].location == 0; // set it back to 0
+
+					AudioMixer_freeWaveFileData(soundBites[i].pSound); //don't wanna free this here
 				}
 			}
 		}
-		for(int k = 0; k < SAMPLE_RATE/10; k++){
-			for(int i = 0; i < MAX_SOUND_BITES; i++){
-				if(soundBites[i].pSound->pData[soundBites[i].location] != NULL){
-					temp[i] = soundBites[i].pSound->pData[soundBites[i].location];
-				}
-				if(soundBites[i+1].pSound->pData[soundBites[i+1].location] != NULL){ //For soundBites being empty or done
-					tempAdvance[i] = soundBites[i+1].pSound->pData[soundBites[i+1].location];
-					temp[i] = temp[i] + tempAdvance[i];
-				}
-			}
-		}
+		memcpy(&tempS, &temp, size * sizeof(temp));
+		// for(int k = 0; k < size; k++){
+		// 	for(int i = 0; i < MAX_SOUND_BITES; i++){
+				
+		// 		if(soundBites[i+1].pSound->pData[soundBites[i+1].location] != NULL){ //For soundBites being empty or done
+		// 			tempAdvance[i] = soundBites[i+1].pSound->pData[soundBites[i+1].location];
+		// 			temp[i] = temp[i] + tempAdvance[i];
+		// 		}
+		// 	}
+		// }
 		
 		// for(int k = 0; k < size; k++){
 		// 	buff[k] = temp[k];
 		// }
-		// short min = 0;
-		// short max = 32767;
+		
 		// for(int k = 0; k < size; k++){
 		// 	if(buff[k+1] != NULL && ){
 		// 		temp = buff
