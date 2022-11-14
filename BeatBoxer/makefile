@@ -36,8 +36,8 @@ all: wav
 
 # Copy wave files to the shared folder
 wav:
-	mkdir -p $(PUBDIR)/wave-files/
-	cp wave-files/* $(PUBDIR)/wave-files/ 
+	mkdir -p $(PUBDIR)/sounds/
+	cp sounds/* $(PUBDIR)/sounds/ 
 
 clean:
 	rm -f $(OUTDIR)/$(TARGET)
