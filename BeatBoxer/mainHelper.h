@@ -6,6 +6,7 @@
 
 void runCommand(char* command);
 void configureI2C();
+void configureAllPins();
 // void pressButtonToEndProgram();
 
 #endif

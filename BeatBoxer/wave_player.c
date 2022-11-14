@@ -31,31 +31,31 @@ void Audio_playFile(snd_pcm_t *handle, wavedata_t *pWaveData);
 
 
 
-int main(void)
-{
-	printf("Beginning play-back of %s\n", SOURCE_FILE);
+// int main(void)
+// {
+// 	printf("Beginning play-back of %s\n", SOURCE_FILE);
 
-	// Configure Output Device
-	snd_pcm_t *handle = Audio_openDevice();
+// 	// Configure Output Device
+// 	snd_pcm_t *handle = Audio_openDevice();
 
-	// Load wave file we want to play:
-	wavedata_t sampleFile;
-	Audio_readWaveFileIntoMemory(SOURCE_FILE, &sampleFile);
+// 	// Load wave file we want to play:
+// 	wavedata_t sampleFile;
+// 	Audio_readWaveFileIntoMemory(SOURCE_FILE, &sampleFile);
 
-	// Play Audio
-	Audio_playFile(handle, &sampleFile);
-//	Audio_playFile(handle, &sampleFile);
-//	Audio_playFile(handle, &sampleFile);
+// 	// Play Audio
+// 	Audio_playFile(handle, &sampleFile);
+// //	Audio_playFile(handle, &sampleFile);
+// //	Audio_playFile(handle, &sampleFile);
 
-	// Cleanup, letting the music in buffer play out (drain), then close and free.
-	snd_pcm_drain(handle);
-	snd_pcm_hw_free(handle);
-	snd_pcm_close(handle);
-	free(sampleFile.pData);
+// 	// Cleanup, letting the music in buffer play out (drain), then close and free.
+// 	snd_pcm_drain(handle);
+// 	snd_pcm_hw_free(handle);
+// 	snd_pcm_close(handle);
+// 	free(sampleFile.pData);
 
-	printf("Done!\n");
-	return 0;
-}
+// 	printf("Done!\n");
+// 	return 0;
+// }
 
 
 

@@ -30,4 +30,15 @@ void runCommand(char* command)
  }
 }
 
+void configureAllPins(){
+    runCommand("config-pin p8.15 gpio");
+    runCommand("config-pin -q p8.15");
+    runCommand("config-pin p8.16 gpio");
+    runCommand("config-pin -q p8.16");
+    runCommand("config-pin p8.17 gpio");
+    runCommand("config-pin -q p8.17");
+    runCommand("config-pin p8.18 gpio");
+    runCommand("config-pin -q p8.18");
+}
+
 

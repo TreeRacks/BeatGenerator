@@ -16,18 +16,18 @@ static void* displayJoystickValues(void* arg){
     while(!stopDisplay){
 
         clearDisplay();
-        if(JoystickLimit < joyStickCalculationY()){ //up
-            displayDec(getMaxValue());
-        } else if(-JoystickLimit > joyStickCalculationY()){ //down
-            displayDec(getMinValue()); 
-        } else if(JoystickLimit < joyStickCalculationX()){ //right
-            displayDec(getMaxInterval() / 1000000.0);
-        } else if(-JoystickLimit > joyStickCalculationX()){ //left
-            displayDec(getMinInterval() / 1000000.0);
-        } else{
-            displayInt(getNumberOfDips()); //centre
-        }
-        sleepForMs(200);
+        // if(JoystickLimit < joyStickCalculationY()){ //up
+        //     displayDec(getMaxValue());
+        // } else if(-JoystickLimit > joyStickCalculationY()){ //down
+        //     displayDec(getMinValue()); 
+        // } else if(JoystickLimit < joyStickCalculationX()){ //right
+        //     displayDec(getMaxInterval() / 1000000.0);
+        // } else if(-JoystickLimit > joyStickCalculationX()){ //left
+        //     displayDec(getMinInterval() / 1000000.0);
+        // } else{
+        //     displayInt(getNumberOfDips()); //centre
+        // }
+        // sleepForMs(200);
     }
     return NULL;
 }
