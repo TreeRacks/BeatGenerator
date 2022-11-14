@@ -28,11 +28,11 @@ static void* Button(void* arg){
     return NULL;
 }
 
-void displayJoystick_startDisplay(){
+void start_startButton(){
     pthread_create(&threadButton, NULL, Button, NULL);
 }
 
-void displayJoystick_stopDisplay(){
+void stop_stopButton(){
     stopButton = true;
     pthread_join(threadButton, NULL);
 }

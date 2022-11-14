@@ -10,5 +10,7 @@ bool greyButtonPressed();
 bool redButtonPressed();
 bool yellowButtonPressed();
 bool greenButtonPressed();
+void start_startButton();
+void stop_stopButton();
 
 #endif
