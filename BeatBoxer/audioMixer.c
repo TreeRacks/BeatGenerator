@@ -17,7 +17,7 @@ static wavedata_t drum, snare, highHat;
 
 #define DEFAULT_VOLUME 80
 
-#define SAMPLE_RATE 44100
+#define SAMPLE_RATE 44100 //every 0.1 seconds send out a playbackbuffer
 #define NUM_CHANNELS 1
 #define SAMPLE_SIZE (sizeof(short)) 			// bytes per sample
 // Sample size note: This works for mono files because each sample ("frame') is 1 value.
@@ -300,7 +300,8 @@ static void fillPlaybackBuffer(short *buff, int size)
 	 */
 	pthread_mutex_lock(&audioMutex);
 	{
-		for(int i =0; i < MAX_SOUND_BITES; i++){
+		int *temp, *tempAdvance;
+		for(int i =0; i < MAX_SOUND_BITES; i++){ //soundBites
 			for(int j = 0; j < size; j++){
 				if(soundBites[i].location < soundBites[i].pSound->numSamples){
 					soundBites[i].location +=1;
@@ -309,15 +310,22 @@ static void fillPlaybackBuffer(short *buff, int size)
 					AudioMixer_freeWaveFileData(soundBites[i].pSound);
 				}
 			}
-			//adding in here
-			if(soundBites[i].pSound != NULL){
-				short data = soundBites[i].pSound->pData;
-				buff[i] = data;
+		}
+		for(int k = 0; k < SAMPLE_RATE/10; k++){
+			for(int i = 0; i < MAX_SOUND_BITES; i++){
+				if(soundBites[i].pSound->pData[soundBites[i].location] != NULL){
+					temp[i] = soundBites[i].pSound->pData[soundBites[i].location];
+				}
+				if(soundBites[i+1].pSound->pData[soundBites[i+1].location] != NULL){ //For soundBites being empty or done
+					tempAdvance[i] = soundBites[i+1].pSound->pData[soundBites[i+1].location];
+					temp[i] = temp[i] + tempAdvance[i];
+				}
 			}
 		}
-		for(int k = 0; k < size; k++){
-			buff[k] = temp[k];
-		}
+		
+		// for(int k = 0; k < size; k++){
+		// 	buff[k] = temp[k];
+		// }
 		// short min = 0;
 		// short max = 32767;
 		// for(int k = 0; k < size; k++){
@@ -326,6 +334,15 @@ static void fillPlaybackBuffer(short *buff, int size)
 		// 		temp[k] = temp[k] + temp[k+1];
 		// 	}
 		// }
+		// for(int k = 0; k < SAMPLE_RATE/10; k++){
+		// 		temp[i] = soundBites[i].pSound->pData[soundBites[i].location];
+		// 		temp[i] = temp[i] + temp[i+1];
+		// 	}
+		// 	//adding in here
+		// 	if(soundBites[i].pSound != NULL){
+		// 		short data = soundBites[i].pSound->pData;
+		// 		buff[i] = data;
+		// 	}
 	}
 	pthread_mutex_unlock(&audioMutex);
 
