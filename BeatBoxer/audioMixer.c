@@ -306,8 +306,6 @@ static void fillPlaybackBuffer(short *buff, int size)
 	 */
 	pthread_mutex_lock(&audioMutex);
 	{
-		short min = 0;
-		short max = 32767;
 		int *temp;
 		temp = malloc(size * sizeof(*temp)); //make some space for temp
 		memset(temp, 0, sizeof(*temp)); //clean it up before using
@@ -318,57 +316,26 @@ static void fillPlaybackBuffer(short *buff, int size)
 					break;
 				}
 				if(soundBites[i].location < soundBites[i].pSound->numSamples){ // if the location of our current sound is less than its total samples...
-					printf("location is: %d\n", soundBites[i].location);
+					//printf("location is: %d\n", soundBites[i].location);
 					if(soundBites[i].pSound->pData[soundBites[i].location] != 0){ // ...and if the data at that location exists (is not NULL)...
-								printf("11\n");
 						temp[j] += soundBites[i].pSound->pData[soundBites[i].location]; //...add them up in an integer array. 
-								printf("11\n");
 					}
-					if(temp[j] > max){ // do the clipping here
-						temp[j] = max;
+					if(temp[j] > SHRT_MAX){ // do the clipping here
+						temp[j] = SHRT_MAX;
 					}
-					if(temp[j] < min){
-						temp[j] = min;
+					if(temp[j] < SHRT_MIN){
+						temp[j] = SHRT_MIN;
 					}
 					soundBites[i].location +=1; // increment the location 
 				} else if(soundBites[i].location == soundBites[i].pSound->numSamples){ // if the location of our sound has reached the number of total samples, it has ended
 					soundBites[i].location = 0; // set it back to 0
-
+					soundBites[i].pSound = NULL;
 					//AudioMixer_freeWaveFileData(soundBites[i].pSound); //don't wanna free this here
 				}
 			}
-			printf("13\n");
-			memcpy(&buff[j], (short*)&temp[j], size * sizeof(*temp));
+			buff[j] = (short)temp[j];
 		}
-		// for(int k = 0; k < size; k++){
-		// 	for(int i = 0; i < MAX_SOUND_BITES; i++){
-				
-		// 		if(soundBites[i+1].pSound->pData[soundBites[i+1].location] != NULL){ //For soundBites being empty or done
-		// 			tempAdvance[i] = soundBites[i+1].pSound->pData[soundBites[i+1].location];
-		// 			temp[i] = temp[i] + tempAdvance[i];
-		// 		}
-		// 	}
-		// }
 		
-		// for(int k = 0; k < size; k++){
-		// 	buff[k] = temp[k];
-		// }
-		
-		// for(int k = 0; k < size; k++){
-		// 	if(buff[k+1] != NULL && ){
-		// 		temp = buff
-		// 		temp[k] = temp[k] + temp[k+1];
-		// 	}
-		// }
-		// for(int k = 0; k < SAMPLE_RATE/10; k++){
-		// 		temp[i] = soundBites[i].pSound->pData[soundBites[i].location];
-		// 		temp[i] = temp[i] + temp[i+1];
-		// 	}
-		// 	//adding in here
-		// 	if(soundBites[i].pSound != NULL){
-		// 		short data = soundBites[i].pSound->pData;
-		// 		buff[i] = data;
-		// 	}
 	}
 	pthread_mutex_unlock(&audioMutex);
 

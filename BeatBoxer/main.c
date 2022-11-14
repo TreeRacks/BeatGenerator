@@ -29,16 +29,17 @@ int main(){
     while (true) {
     // Quit?
     printf("1\n");
+        AudioMixer_queueSound(&highHat);
         AudioMixer_queueSound(&drum);
-        //AudioMixer_queueSound(&snare);
-        sleepForMs(1000);
-        if (toupper(getchar()) == 'Q') {
-            printf("1\n");
-            break;
-        }
+        AudioMixer_queueSound(&drum);
+        sleepForMs(100000000);
+        // if (toupper(getchar()) == 'Q') {
+        //     printf("1\n");
+        //     break;
+        // }
         
     }
-
+    
     AudioMixer_cleanup();
     
 
