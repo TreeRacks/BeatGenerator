@@ -11,10 +11,10 @@
 
 
 static snd_pcm_t *handle;
-static wavedata_t drum, snare, highHat;
-#define drumSound "sounds/100051__menegass__gui-drum-bd-hard.wav"
-#define snareSound "sounds/100058__menegass__gui-drum-snare-hard.wav"
-#define highHatSound "sounds/100062__menegass__gui-drum-tom-hi-hard.wav"
+// static wavedata_t drum, snare, highHat;
+// #define drumSound "sounds/100051__menegass__gui-drum-bd-hard.wav"
+// #define snareSound "sounds/100058__menegass__gui-drum-snare-hard.wav"
+// #define highHatSound "sounds/100062__menegass__gui-drum-tom-hi-hard.wav"
 
 #define DEFAULT_VOLUME 80
 
@@ -58,9 +58,9 @@ void AudioMixer_init(void)
 	// REVISIT:- Implement this. Hint: set the pSound pointer to NULL for each
 	//     sound bite.
 
-	AudioMixer_readWaveFileIntoMemory(drumSound, &drum);
-	AudioMixer_readWaveFileIntoMemory(snareSound, &snare);
-	AudioMixer_readWaveFileIntoMemory(highHatSound, &highHat);
+	// AudioMixer_readWaveFileIntoMemory(drumSound, &drum);
+	// AudioMixer_readWaveFileIntoMemory(snareSound, &snare);
+	// AudioMixer_readWaveFileIntoMemory(highHatSound, &highHat);
 
 	//set everything back to NULL and zero
 	for(int i = 0; i < MAX_SOUND_BITES; i++){
@@ -168,13 +168,19 @@ void AudioMixer_queueSound(wavedata_t *pSound)
 	 *    not being able to play another wave file.
 	 */
 
-	pthread_mutex_lock(&audioMutex);
-	{
 		int numberOfFreeSpaces = MAX_SOUND_BITES;
 		for(int i =0; i < MAX_SOUND_BITES; i++){
-			if(soundBites[i].pSound->pData == NULL){
+			if(soundBites[i].pSound == NULL){
+				pthread_mutex_lock(&audioMutex);
+				{
+				soundBites[i].pSound = pSound;
 				soundBites[i].pSound->pData = pSound->pData;
+				// for(int j=0;j<500; j++){
+				// 	printf("pdata: %d\n",soundBites[i].pSound->pData[j]);
+				// }
 				soundBites[i].pSound->numSamples = pSound->numSamples;
+				}
+				pthread_mutex_unlock(&audioMutex);
 				numberOfFreeSpaces--;
 				return;
 			} 
@@ -183,8 +189,7 @@ void AudioMixer_queueSound(wavedata_t *pSound)
 			printf("No space found in queue!");
 			return;
 		}
-	}
-	pthread_mutex_unlock(&audioMutex);
+
 }
 
 void AudioMixer_cleanup(void)
@@ -304,20 +309,20 @@ static void fillPlaybackBuffer(short *buff, int size)
 		short min = 0;
 		short max = 32767;
 		int *temp;
-		short *tempS;
 		temp = malloc(size * sizeof(*temp)); //make some space for temp
-		tempS = malloc(size * sizeof(*tempS));
 		memset(temp, 0, sizeof(*temp)); //clean it up before using
-		memset(tempS, 0, sizeof(*tempS));
-		
-		for(int i =0; i < MAX_SOUND_BITES; i++){ //soundBites
-
-			for(int j = 0; j < size; j++){
-
+		for(int j = 0; j < size; j++){
+			
+			for(int i =0; i < MAX_SOUND_BITES; i++){ //soundBites
+				if(soundBites[i].pSound == NULL){
+					break;
+				}
 				if(soundBites[i].location < soundBites[i].pSound->numSamples){ // if the location of our current sound is less than its total samples...
-
-					if(soundBites[i].pSound->pData[soundBites[i].location] != NULL){ // ...and if the data at that location exists (is not NULL)...
+					printf("location is: %d\n", soundBites[i].location);
+					if(soundBites[i].pSound->pData[soundBites[i].location] != 0){ // ...and if the data at that location exists (is not NULL)...
+								printf("11\n");
 						temp[j] += soundBites[i].pSound->pData[soundBites[i].location]; //...add them up in an integer array. 
+								printf("11\n");
 					}
 					if(temp[j] > max){ // do the clipping here
 						temp[j] = max;
@@ -327,14 +332,14 @@ static void fillPlaybackBuffer(short *buff, int size)
 					}
 					soundBites[i].location +=1; // increment the location 
 				} else if(soundBites[i].location == soundBites[i].pSound->numSamples){ // if the location of our sound has reached the number of total samples, it has ended
+					soundBites[i].location = 0; // set it back to 0
 
-					soundBites[i].location == 0; // set it back to 0
-
-					AudioMixer_freeWaveFileData(soundBites[i].pSound); //don't wanna free this here
+					//AudioMixer_freeWaveFileData(soundBites[i].pSound); //don't wanna free this here
 				}
 			}
+			printf("13\n");
+			memcpy(&buff[j], (short*)&temp[j], size * sizeof(*temp));
 		}
-		memcpy(&tempS, &temp, size * sizeof(temp));
 		// for(int k = 0; k < size; k++){
 		// 	for(int i = 0; i < MAX_SOUND_BITES; i++){
 				
