@@ -171,7 +171,7 @@ void AudioMixer_queueSound(wavedata_t *pSound)
 	{
 		int numberOfFreeSpaces = MAX_SOUND_BITES;
 		for(int i =0; i < MAX_SOUND_BITES; i++){
-			if(soundBites[i].pSound == NULL){
+			if(soundBites[i].pSound->pData == NULL){
 				soundBites[i].pSound->pData = pSound->pData;
 				soundBites[i].pSound->numSamples = pSound->numSamples;
 				numberOfFreeSpaces--;
@@ -301,12 +301,31 @@ static void fillPlaybackBuffer(short *buff, int size)
 	pthread_mutex_lock(&audioMutex);
 	{
 		for(int i =0; i < MAX_SOUND_BITES; i++){
+			for(int j = 0; j < size; j++){
+				if(soundBites[i].location < soundBites[i].pSound->numSamples){
+					soundBites[i].location +=1;
+				} else if(soundBites[i].location == soundBites[i].pSound->numSamples){
+					soundBites[i].location == 0;
+					AudioMixer_freeWaveFileData(soundBites[i].pSound);
+				}
+			}
+			//adding in here
 			if(soundBites[i].pSound != NULL){
 				short data = soundBites[i].pSound->pData;
-				playbackBuffer[i] = data;
+				buff[i] = data;
 			}
-			
 		}
+		for(int k = 0; k < size; k++){
+			buff[k] = temp[k];
+		}
+		// short min = 0;
+		// short max = 32767;
+		// for(int k = 0; k < size; k++){
+		// 	if(buff[k+1] != NULL && ){
+		// 		temp = buff
+		// 		temp[k] = temp[k] + temp[k+1];
+		// 	}
+		// }
 	}
 	pthread_mutex_unlock(&audioMutex);
 
