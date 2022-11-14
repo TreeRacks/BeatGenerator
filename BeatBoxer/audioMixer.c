@@ -59,13 +59,16 @@ void AudioMixer_init(void)
 
 	wavedata_t drum;
 	AudioMixer_readWaveFileIntoMemory(drumSound, &drum);
-	AudioMixer_freeWaveFileData(&drum); //not sure about this
 	wavedata_t snare;
 	AudioMixer_readWaveFileIntoMemory(snareSound, &snare);
-	AudioMixer_freeWaveFileData(&snare); //not sure about this
 	wavedata_t highHat;
 	AudioMixer_readWaveFileIntoMemory(highHatSound, &highHat);
-	AudioMixer_freeWaveFileData(&highHat); //not sure about this
+
+	//set everything back to NULL and zero
+	for(int i = 0; i < MAX_SOUND_BITES; i++){
+		soundBites[i].pSound = NULL;
+		soundBites[i].location = 0;
+	}
 
 	// Open the PCM output
 	int err = snd_pcm_open(&handle, "default", SND_PCM_STREAM_PLAYBACK, 0);
