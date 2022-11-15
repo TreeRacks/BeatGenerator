@@ -12,5 +12,8 @@ bool yellowButtonPressed();
 bool greenButtonPressed();
 void start_startButton();
 void stop_stopButton();
+void switchBeatMode();
+void rockBeat();
+
 
 #endif

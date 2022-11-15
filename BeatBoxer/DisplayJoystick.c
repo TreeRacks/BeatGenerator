@@ -86,6 +86,10 @@ int getBPM(){
     return bpm;
 }
 
+int getMsDelayPerBeat(){
+    return msDelayPerBeat;
+}
+
 void clearDisplay(){
     int i2cFileDesc = initI2cBus(I2CDRV_LINUX_BUS1, I2C_DEVICE_ADDRESS);
     for(int i = 0; i < 16; i+=2){
