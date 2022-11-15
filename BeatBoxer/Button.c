@@ -1,4 +1,6 @@
 #include "Button.h"
+#include "audioMixer.h"
+#include "mainHelper.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -10,21 +12,38 @@
 #define yellowButtonPath "/sys/class/gpio/gpio27/value"
 #define greenButtonPath "/sys/class/gpio/gpio65/value"
 
+#define drumSound "sounds/100051__menegass__gui-drum-bd-hard.wav"
+#define snareSound "sounds/100058__menegass__gui-drum-snare-hard.wav"
+#define highHatSound "sounds/100062__menegass__gui-drum-tom-hi-hard.wav"
+
 pthread_t threadButton;
 static bool stopButton = false;
+static wavedata_t drum, snare, highHat;
+static int mode = 0;
+
 
 static void* Button(void* arg){
+    AudioMixer_readWaveFileIntoMemory(drumSound, &drum);
+    AudioMixer_readWaveFileIntoMemory(snareSound, &snare);
+    AudioMixer_readWaveFileIntoMemory(highHatSound, &highHat);
     while(!stopButton){
         if(greyButtonPressed()){
-            printf("grey was pressed\n");
+            beatMode();
         } else if(redButtonPressed()){
-            printf("red was pressed\n");
+            AudioMixer_queueSound(&drum);
+            sleepForMs(100);
         } else if(yellowButtonPressed()){
-            printf("yellow was pressed\n");
+            AudioMixer_queueSound(&snare);
+            sleepForMs(100);
         } else if(greenButtonPressed()){
-            printf("green was pressed\n");
+            AudioMixer_queueSound(&highHat);
+            sleepForMs(100);
         }
+        sleepForMs(10);
     }
+    AudioMixer_freeWaveFileData(&drum);
+    AudioMixer_freeWaveFileData(&snare);
+    AudioMixer_freeWaveFileData(&highHat);
     return NULL;
 }
 
@@ -37,6 +56,32 @@ void stop_stopButton(){
     pthread_join(threadButton, NULL);
 }
 
+void switchBeatMode(){
+    if(mode == 0){
+        mode += 1;
+        // displayInt();
+        //Do nothing
+    }
+    else if(mode == 1){
+        mode += 1;
+        rockBeat();
+    }
+    else if(mode == 2){
+        mode = 0;
+        customBeat();
+    }
+
+}
+
+void rockBeat(){
+    int halfBeat = 60/getBpm();
+    
+    //Time For Half Beat [sec] = 60 [sec/min] / BPM / 2 [half-beats per beat]
+}
+
+void customBeat(){
+
+}
 
 void writingToGPIO(float value){
     FILE *pFile = fopen("/sys/class/gpio/export", "w");

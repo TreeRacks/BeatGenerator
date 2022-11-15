@@ -1,5 +1,8 @@
 #include "DisplayJoystick.h"
 #include "Joystick.h"
+#include "Button.h"
+#include "audioMixer.h"
+#include "mainHelper.h"
 #include "LEDMatrix.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -10,26 +13,77 @@
 
 pthread_t threadJoystick;
 static bool stopDisplay = false;
-
+static int bpm = 120;
+static int msDelayPerBeat = 500;
+static int volume = 80;
 
 static void* displayJoystickValues(void* arg){
     while(!stopDisplay){
-
         clearDisplay();
-        // if(JoystickLimit < joyStickCalculationY()){ //up
-        //     displayDec(getMaxValue());
-        // } else if(-JoystickLimit > joyStickCalculationY()){ //down
-        //     displayDec(getMinValue()); 
-        // } else if(JoystickLimit < joyStickCalculationX()){ //right
-        //     displayDec(getMaxInterval() / 1000000.0);
-        // } else if(-JoystickLimit > joyStickCalculationX()){ //left
-        //     displayDec(getMinInterval() / 1000000.0);
-        // } else{
-        //     displayInt(getNumberOfDips()); //centre
-        // }
-        // sleepForMs(200);
+        if(0.5 < joyStickCalculationY()){ //up
+            volume += 5;
+            AudioMixer_setVolume(volume);
+            if(volume >= AUDIOMIXER_MAX_VOLUME){
+                volume = AUDIOMIXER_MAX_VOLUME;
+                displayInt(99);
+            }
+            else{
+                displayInt(volume);
+            }
+            
+        } else if(-0.5 > joyStickCalculationY()){ //down
+            volume -= 5;
+            AudioMixer_setVolume(volume);
+            if(volume <= 0){
+                volume = 0;
+                displayInt(0);
+            }
+            else{
+                displayInt(volume);
+            }
+        } else if(0.5 < joyStickCalculationX()){ //right
+            //displayDec(3.3);
+            
+            printf("bpm is %d\n", bpm);
+            msDelayPerBeat -= 20; //delay sleepForMs(bpmInMs)
+            bpm += 5;
+            if(bpm > 300){
+                bpm = 300;
+            }
+            if(bpm > 100){
+                displayInt(bpm - bpm + 99);
+            }
+            else{
+                displayInt(bpm);
+            }
+            
+
+        } else if(-0.5 > joyStickCalculationX()){ //left
+            //displayDec(4.4);
+            //printf("bpm is %d\n", bpm);
+            msDelayPerBeat += 20;
+            bpm -= 5;
+            if (bpm < 40){
+                bpm = 40;
+            }
+            if(bpm > 100){
+                displayInt(bpm - bpm + 99);
+            }
+            else{
+                displayInt(bpm);
+            }
+            
+        } else{ //centre
+            displayInt(0);
+
+        }
+        sleepForMs(200);
     }
     return NULL;
+}
+
+int getBPM(){
+    return bpm;
 }
 
 void clearDisplay(){

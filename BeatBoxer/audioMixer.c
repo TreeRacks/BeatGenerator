@@ -186,10 +186,9 @@ void AudioMixer_queueSound(wavedata_t *pSound)
 			} 
 		}
 		if(numberOfFreeSpaces == 0){
-			printf("No space found in queue!");
+			printf("No space found in queue!\n");
 			return;
 		}
-
 }
 
 void AudioMixer_cleanup(void)
@@ -335,7 +334,6 @@ static void fillPlaybackBuffer(short *buff, int size)
 			}
 			buff[j] = (short)temp[j];
 		}
-		
 	}
 	pthread_mutex_unlock(&audioMutex);
 

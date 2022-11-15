@@ -50,3 +50,9 @@ void sleepForMs(long long delayInMs){
     struct timespec reqDelay = {seconds, nanoseconds};
     nanosleep(&reqDelay, (struct timespec *) NULL);
 }
+
+void whileLoop(){
+    while(true){
+        
+    }
+}

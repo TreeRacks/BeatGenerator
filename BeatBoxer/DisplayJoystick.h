@@ -8,5 +8,7 @@
 void clearDisplay();
 void displayJoystick_startDisplay();
 void displayJoystick_stopDisplay();
+void sleepForMs(long long delayInMs);
+int getBPM();
 
 #endif
