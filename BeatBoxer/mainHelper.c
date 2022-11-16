@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <time.h>
+#include <ctype.h>
 
 void configureI2C(){
     runCommand("config-pin P9_18 i2c");
@@ -56,7 +57,9 @@ void whileLoop(){
     while(true){
         printStats();
         printf("\n");
+        if (toupper(getchar()) == 'Q') {
+            break;
+        }
         sleepForMs(1000);
-        
     }
 }

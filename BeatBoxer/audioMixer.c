@@ -27,7 +27,7 @@ static snd_pcm_t *handle;
 
 static unsigned long playbackBufferSize = 0;
 static short *playbackBuffer = NULL;
-static Interval_statistics_t *mixerStatistics;
+static Interval_statistics_t mixerStatistics;
 
 // Currently active (waiting to be played) sound bites
 #define MAX_SOUND_BITES 30
@@ -53,7 +53,6 @@ static int volume = 0;
 
 void AudioMixer_init(void)
 {
-	mixerStatistics = malloc(sizeof(*mixerStatistics));
 	AudioMixer_setVolume(DEFAULT_VOLUME);
 
 	// Initialize the currently active sound-bites being played
@@ -177,9 +176,6 @@ void AudioMixer_queueSound(wavedata_t *pSound)
 				{
 				soundBites[i].pSound = pSound;
 				soundBites[i].pSound->pData = pSound->pData;
-				// for(int j=0;j<500; j++){
-				// 	printf("pdata: %d\n",soundBites[i].pSound->pData[j]);
-				// }
 				soundBites[i].pSound->numSamples = pSound->numSamples;
 				}
 				pthread_mutex_unlock(&audioMutex);
@@ -343,29 +339,54 @@ static void fillPlaybackBuffer(short *buff, int size)
 }
 
 double AudioMixer_getMinInterval(){
-	return mixerStatistics->minIntervalInMs;
+	double min = 0.0;
+	pthread_mutex_lock(&audioMutex);
+	{
+		min = mixerStatistics.minIntervalInMs;
+	}
+	pthread_mutex_unlock(&audioMutex);
+	return min;
 }
 double AudioMixer_getMaxInterval(){
-	return mixerStatistics->maxIntervalInMs;
+	double max = 0.0;
+	pthread_mutex_lock(&audioMutex);
+	{
+		max = mixerStatistics.maxIntervalInMs;
+	}
+	pthread_mutex_unlock(&audioMutex);
+	return max;
 }
 double AudioMixer_getAvgInterval(){
-	return mixerStatistics->avgIntervalInMs;
+	double avg = 0.0;
+	pthread_mutex_lock(&audioMutex);
+	{
+		avg = mixerStatistics.avgIntervalInMs;
+	}
+	pthread_mutex_unlock(&audioMutex);
+	return avg;
 }
 int AudioMixer_getNumSamplesInterval(){
-	return mixerStatistics->numSamples;
+	int numSample = 0;
+	pthread_mutex_lock(&audioMutex);
+	{
+		numSample = mixerStatistics.numSamples;
+	}
+	pthread_mutex_unlock(&audioMutex);
+	return numSample;
 }
 
 void* playbackThread(void* _arg)
 {
 
-	
 	while (!stopping) {
 		// Generate next block of audio
 		fillPlaybackBuffer(playbackBuffer, playbackBufferSize);
-
-		Interval_markInterval(INTERVAL_LOW_LEVEL_AUDIO);
-		Interval_getStatisticsAndClear(INTERVAL_LOW_LEVEL_AUDIO, mixerStatistics);
-		
+		pthread_mutex_lock(&audioMutex);
+		{
+			Interval_markInterval(INTERVAL_LOW_LEVEL_AUDIO);
+			Interval_getStatisticsAndClear(INTERVAL_LOW_LEVEL_AUDIO, &mixerStatistics);
+		}
+		pthread_mutex_unlock(&audioMutex);
 		// Output the audio
 		snd_pcm_sframes_t frames = snd_pcm_writei(handle,
 				playbackBuffer, playbackBufferSize);

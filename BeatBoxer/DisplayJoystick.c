@@ -11,7 +11,7 @@
 #include <stdbool.h>
 #include <pthread.h>
 
-pthread_t threadJoystick;
+static pthread_t threadJoystick;
 static bool stopDisplay = false;
 static int bpm = 120;
 static int msDelayPerBeat = 500;
@@ -19,6 +19,7 @@ static int volume = 80;
 
 static void* displayJoystickValues(void* arg){
     while(!stopDisplay){
+        printStats();
         clearDisplay();
         if(0.5 < joyStickCalculationY()){ //up
             volume += 5;

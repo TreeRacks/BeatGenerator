@@ -20,14 +20,14 @@
 #define highHatSound "sounds/100062__menegass__gui-drum-tom-hi-hard.wav"
 #define gongSound "sounds/GONG.WAV"
 
-pthread_t threadButton;
+static pthread_t threadButton;
 static bool stopButton, stopPlaying, stopPlayingCustom = false;
 static wavedata_t drum, snare, highHat, gong;
 static int mode = 0;
-static Interval_statistics_t *beatBoxStatistics;
+static Interval_statistics_t beatBoxStatistics;
+static pthread_mutex_t buttonMutex = PTHREAD_MUTEX_INITIALIZER;
 
 static void* Button(void* arg){
-
     AudioMixer_readWaveFileIntoMemory(drumSound, &drum);
     AudioMixer_readWaveFileIntoMemory(snareSound, &snare);
     AudioMixer_readWaveFileIntoMemory(highHatSound, &highHat);
@@ -52,7 +52,7 @@ static void* Button(void* arg){
             markAndGetStatistic();
             sleepForMs(100);
         }
-        sleepForMs(10);
+        sleepForMs(10); 
     }
     AudioMixer_freeWaveFileData(&drum);
     AudioMixer_freeWaveFileData(&snare);
@@ -62,27 +62,34 @@ static void* Button(void* arg){
 }
 
 void markAndGetStatistic(){
-    Interval_markInterval(INTERVAL_BEAT_BOX);
-    Interval_getStatisticsAndClear(INTERVAL_BEAT_BOX, beatBoxStatistics);
+    pthread_mutex_lock(&buttonMutex);
+    {
+        Interval_markInterval(INTERVAL_BEAT_BOX);
+        Interval_getStatisticsAndClear(INTERVAL_BEAT_BOX, &beatBoxStatistics);
+    }
+    pthread_mutex_unlock(&buttonMutex);
 }
 
 void printStats()
 {
-    printf("M%d %dbpm vol:%d  Low [%f  %f] avg %f / %d  Beat[%f  %f] avg %f / %d",mode, getBPM(), 
-    AudioMixer_getVolume(), 
-    AudioMixer_getMinInterval(), 
-    AudioMixer_getMaxInterval(),
-    AudioMixer_getAvgInterval(),
-    AudioMixer_getNumSamplesInterval(),
-    beatBoxStatistics->maxIntervalInMs,
-    beatBoxStatistics->minIntervalInMs,
-    beatBoxStatistics->avgIntervalInMs,
-    beatBoxStatistics->numSamples);
+    pthread_mutex_lock(&buttonMutex);
+    {
+        printf("M%d %dbpm vol:%d  Low [%f  %f] avg %f / %d  Beat[%f  %f] avg %f / %d \n",mode, getBPM(), 
+        AudioMixer_getVolume(), 
+        AudioMixer_getMinInterval(), 
+        AudioMixer_getMaxInterval(),
+        AudioMixer_getAvgInterval(),
+        AudioMixer_getNumSamplesInterval(),
+        beatBoxStatistics.maxIntervalInMs,
+        beatBoxStatistics.minIntervalInMs,
+        beatBoxStatistics.avgIntervalInMs,
+        beatBoxStatistics.numSamples);
+    }
+    pthread_mutex_unlock(&buttonMutex);
     sleepForMs(1000);
 }
 
 void start_startButton(){
-    beatBoxStatistics = malloc(sizeof(*beatBoxStatistics));
     pthread_create(&threadButton, NULL, Button, NULL);
 }
 
@@ -100,6 +107,9 @@ void checkForButtonPress(){
 
 void rockBeat(){
     while(!(stopPlaying)){
+        if(stopButton){
+            break;
+        }
         checkForButtonPress();
 
         int halfBeat = getMsDelayPerBeat()/2;
@@ -178,6 +188,9 @@ void rockBeat(){
 
 void customBeat(){
     while(!(stopPlayingCustom)){
+        if(stopButton){
+            break;
+        }
         checkForButtonPress();
 
         int halfBeat = getMsDelayPerBeat()/2;
