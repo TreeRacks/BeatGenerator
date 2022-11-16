@@ -3,6 +3,7 @@
 #include "mainHelper.h"
 #include "DisplayJoystick.h"
 #include "LEDMatrix.h"
+#include "intervalTimer.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -17,16 +18,22 @@
 #define drumSound "sounds/100051__menegass__gui-drum-bd-hard.wav"
 #define snareSound "sounds/100058__menegass__gui-drum-snare-hard.wav"
 #define highHatSound "sounds/100062__menegass__gui-drum-tom-hi-hard.wav"
+#define gongSound "sounds/GONG.WAV"
 
 pthread_t threadButton;
-static bool stopButton, stopPlaying = false;
-static wavedata_t drum, snare, highHat;
+static bool stopButton, stopPlaying, stopPlayingCustom = false;
+static wavedata_t drum, snare, highHat, gong;
 static int mode = 0;
 
 static void* Button(void* arg){
+
+    Interval_statistics_t *beatBoxStatistics = malloc(sizeof(*beatBoxStatistics));
+
+
     AudioMixer_readWaveFileIntoMemory(drumSound, &drum);
     AudioMixer_readWaveFileIntoMemory(snareSound, &snare);
     AudioMixer_readWaveFileIntoMemory(highHatSound, &highHat);
+    AudioMixer_readWaveFileIntoMemory(gongSound, &gong);
     while(!stopButton){
         if(greyButtonPressed()){
             while(greyButtonPressed()){};
@@ -34,14 +41,17 @@ static void* Button(void* arg){
         } else if(redButtonPressed()){
             while(redButtonPressed()){};
             AudioMixer_queueSound(&drum);
+            Interval_markInterval(INTERVAL_BEAT_BOX);
             sleepForMs(100);
         } else if(yellowButtonPressed()){
             while(yellowButtonPressed()){};
             AudioMixer_queueSound(&snare);
+            Interval_markInterval(INTERVAL_BEAT_BOX);
             sleepForMs(100);
         } else if(greenButtonPressed()){
             while(greenButtonPressed()){};
             AudioMixer_queueSound(&highHat);
+            Interval_markInterval(INTERVAL_BEAT_BOX);
             sleepForMs(100);
         }
         sleepForMs(10);
@@ -49,7 +59,16 @@ static void* Button(void* arg){
     AudioMixer_freeWaveFileData(&drum);
     AudioMixer_freeWaveFileData(&snare);
     AudioMixer_freeWaveFileData(&highHat);
+    AudioMixer_freeWaveFileData(&gong);
     return NULL;
+}
+
+void printStats()
+{
+    printf("M%d %dbpm vol:%d  Low [%f  %f]",mode, getBPM(), 
+    AudioMixer_getVolume(), 
+    AudioMixer_getMinInterval(), 
+    AudioMixer_getMaxInterval());
 }
 
 void start_startButton(){
@@ -64,6 +83,7 @@ void stop_stopButton(){
 void checkForButtonPress(){
     if(greyButtonPressed()){
         stopPlaying = true;
+        stopPlayingCustom = true;
     }
 }
 
@@ -73,6 +93,7 @@ void rockBeat(){
 
         int halfBeat = getMsDelayPerBeat()/2;
         AudioMixer_queueSound(&highHat);
+        
         AudioMixer_queueSound(&drum);
         checkForButtonPress();
         sleepForMs(halfBeat);
@@ -130,68 +151,33 @@ void rockBeat(){
 
 }
 
-void switchBeatMode(){
-    if(mode == 0){
-                    printf("1\n");
-        mode += 1;
-        
-        // displayInt();
-        //Do nothing
-    }
-    else if(mode == 1){
-                    printf("2\n");
-        mode += 1;
-        stopPlaying = false;
-        rockBeat();
-    }
-    else if(mode == 2){
-                    printf("3\n");
-        mode = 0;
-        //customBeat();
-    }
-
-}
 
 void customBeat(){
-    while(!(stopPlaying)){
+    while(!(stopPlayingCustom)){
         checkForButtonPress();
 
         int halfBeat = getMsDelayPerBeat()/2;
         AudioMixer_queueSound(&highHat);
         AudioMixer_queueSound(&drum);
-        checkForButtonPress();
-        sleepForMs(halfBeat);
-        checkForButtonPress();
+        sleepForMs(halfBeat/2);
         
-        AudioMixer_queueSound(&highHat);
+        sleepForMs(halfBeat/2);
         checkForButtonPress();
-        sleepForMs(halfBeat);
-        checkForButtonPress();
-
-        AudioMixer_queueSound(&highHat);
         AudioMixer_queueSound(&snare);
         sleepForMs(halfBeat);
         checkForButtonPress();
-
-        AudioMixer_queueSound(&highHat);
-        sleepForMs(halfBeat);
+         AudioMixer_queueSound(&highHat);
+        sleepForMs(halfBeat/4);
         checkForButtonPress();
-
         AudioMixer_queueSound(&highHat);
-        AudioMixer_queueSound(&drum);
-        sleepForMs(halfBeat);
+         sleepForMs(halfBeat/4);
+         checkForButtonPress();
+         AudioMixer_queueSound(&highHat);
+         sleepForMs(halfBeat/2);
         checkForButtonPress();
-
-        AudioMixer_queueSound(&highHat);
-        sleepForMs(halfBeat);
-        checkForButtonPress();
-
-        AudioMixer_queueSound(&highHat);
         AudioMixer_queueSound(&snare);
-        sleepForMs(halfBeat);
-        checkForButtonPress();
-
-        AudioMixer_queueSound(&highHat);
+        
+        AudioMixer_queueSound(&gong);
         sleepForMs(halfBeat);
         checkForButtonPress();
         if(greenButtonPressed()){
@@ -209,8 +195,26 @@ void customBeat(){
             AudioMixer_queueSound(&snare);
             sleepForMs(100);
         } 
-        
     }
+}
+
+
+void switchBeatMode(){
+    if(mode == 0){
+        mode = 1;
+        stopPlaying = false;
+        rockBeat();
+        //Do nothing
+    }
+    else if(mode == 1){
+        mode = 2;
+        stopPlayingCustom = false;
+        customBeat();
+    }
+    else if(mode == 2){
+        mode = 0;
+    }
+
 }
 
 int getMode(){

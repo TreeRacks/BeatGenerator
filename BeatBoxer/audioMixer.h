@@ -9,6 +9,7 @@ typedef struct {
 } wavedata_t;
 
 #define AUDIOMIXER_MAX_VOLUME 100
+Interval_statistics_t *mixerStatistics;
 
 // init() must be called before any other functions,
 // cleanup() must be called last to stop playback threads and free memory.
@@ -30,4 +31,8 @@ void AudioMixer_queueSound(wavedata_t *pSound);
 int  AudioMixer_getVolume();
 void AudioMixer_setVolume(int newVolume);
 
+double AudioMixer_getMinInterval();
+double AudioMixer_getMaxInterval();
+double AudioMixer_getAvgInterval();
+int AudioMixer_getNumSamplesInterval();
 #endif

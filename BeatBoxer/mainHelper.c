@@ -1,4 +1,5 @@
 #include "mainHelper.h"
+#include "Button.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
@@ -53,6 +54,9 @@ void sleepForMs(long long delayInMs){
 
 void whileLoop(){
     while(true){
+        printStats();
+        printf("\n");
+        sleepForMs(1000);
         
     }
 }

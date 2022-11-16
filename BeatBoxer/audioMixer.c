@@ -2,6 +2,7 @@
 // which are left as incomplete.
 // Note: Generates low latency audio on BeagleBone Black; higher latency found on host.
 #include "audioMixer.h"
+#include "intervalTimer.h"
 #include <alsa/asoundlib.h>
 #include <stdbool.h>
 #include <pthread.h>
@@ -50,8 +51,10 @@ static pthread_mutex_t audioMutex = PTHREAD_MUTEX_INITIALIZER;
 
 static int volume = 0;
 
+
 void AudioMixer_init(void)
 {
+
 	AudioMixer_setVolume(DEFAULT_VOLUME);
 
 	// Initialize the currently active sound-bites being played
@@ -340,12 +343,31 @@ static void fillPlaybackBuffer(short *buff, int size)
 
 }
 
+double AudioMixer_getMinInterval(){
+	return mixerStatistics->minIntervalInMs;
+}
+double AudioMixer_getMaxInterval(){
+	return mixerStatistics->maxIntervalInMs;
+}
+double AudioMixer_getAvgInterval(){
+	return mixerStatistics->avgIntervalInMs;
+}
+int AudioMixer_getNumSamplesInterval(){
+	return mixerStatistics->numSamples;
+}
 
 void* playbackThread(void* _arg)
 {
+	Interval_statistics_t *mixerStatistics = malloc(sizeof(*mixerStatistics));
+
+	
 	while (!stopping) {
 		// Generate next block of audio
 		fillPlaybackBuffer(playbackBuffer, playbackBufferSize);
+		Interval_markInterval(INTERVAL_LOW_LEVEL_AUDIO);
+		Interval_getStatisticsAndClear(INTERVAL_LOW_LEVEL_AUDIO, mixerStatistics);
+		
+
 
 		// Output the audio
 		snd_pcm_sframes_t frames = snd_pcm_writei(handle,

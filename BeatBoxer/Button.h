@@ -15,5 +15,6 @@ void stop_stopButton();
 void switchBeatMode();
 void rockBeat();
 int getMode();
+void printStats();
 
 #endif
