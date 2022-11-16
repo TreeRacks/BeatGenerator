@@ -16,5 +16,6 @@ void initializeStartRegisters();
 
 void displayInt(int i);
 void displayDec(double d);
+void displayMode(char* c);
 
 #endif

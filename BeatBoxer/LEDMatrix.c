@@ -160,6 +160,12 @@ static void displayMatrix(char* display){
   logicalFrame();
 }
 
+void displayMode(char* c){
+  char buff[10];
+  snprintf(buff, 10, "%s", c);
+  displayMatrix(buff);
+}
+
 void displayInt(int i){
   if(i > 99){
     i = 99;

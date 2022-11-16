@@ -2,6 +2,7 @@
 #include "audioMixer.h"
 #include "mainHelper.h"
 #include "DisplayJoystick.h"
+#include "LEDMatrix.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
@@ -18,10 +19,9 @@
 #define highHatSound "sounds/100062__menegass__gui-drum-tom-hi-hard.wav"
 
 pthread_t threadButton;
-static bool stopButton = false;
+static bool stopButton, stopPlaying = false;
 static wavedata_t drum, snare, highHat;
 static int mode = 0;
-
 
 static void* Button(void* arg){
     AudioMixer_readWaveFileIntoMemory(drumSound, &drum);
@@ -61,71 +61,87 @@ void stop_stopButton(){
     pthread_join(threadButton, NULL);
 }
 
+void checkForButtonPress(){
+    if(greyButtonPressed()){
+        stopPlaying = true;
+    }
+}
 
 void rockBeat(){
-    
-        printf("delay is %d\n", getMsDelayPerBeat());
+    while(!(stopPlaying)){
+        checkForButtonPress();
+
         int halfBeat = getMsDelayPerBeat()/2;
         AudioMixer_queueSound(&highHat);
         AudioMixer_queueSound(&drum);
+        checkForButtonPress();
         sleepForMs(halfBeat);
+        checkForButtonPress();
         
         AudioMixer_queueSound(&highHat);
+        checkForButtonPress();
         sleepForMs(halfBeat);
+        checkForButtonPress();
 
         AudioMixer_queueSound(&highHat);
         AudioMixer_queueSound(&snare);
         sleepForMs(halfBeat);
+        checkForButtonPress();
 
         AudioMixer_queueSound(&highHat);
         sleepForMs(halfBeat);
+        checkForButtonPress();
 
         AudioMixer_queueSound(&highHat);
         AudioMixer_queueSound(&drum);
         sleepForMs(halfBeat);
+        checkForButtonPress();
 
         AudioMixer_queueSound(&highHat);
         sleepForMs(halfBeat);
+        checkForButtonPress();
 
         AudioMixer_queueSound(&highHat);
         AudioMixer_queueSound(&snare);
         sleepForMs(halfBeat);
+        checkForButtonPress();
 
         AudioMixer_queueSound(&highHat);
         sleepForMs(halfBeat);
-
-        if(greyButtonPressed()){
-            //do nothing aka no recursion
-        } else if (greenButtonPressed()){
+        checkForButtonPress();
+        if(greenButtonPressed()){
+            while(greenButtonPressed()){};
             AudioMixer_queueSound(&highHat);
             sleepForMs(100);
-            rockBeat();
-        }else if (redButtonPressed()){
+        }
+        if (redButtonPressed()){
+            while(redButtonPressed()){};
             AudioMixer_queueSound(&drum);
             sleepForMs(100);
-            rockBeat();
-        }else if(yellowButtonPressed()){
+        }
+        if(yellowButtonPressed()){
+            while(yellowButtonPressed()){};
             AudioMixer_queueSound(&snare);
             sleepForMs(100);
-            rockBeat();
-        }else if (mode == 2){
-            rockBeat();
-        }
-
+        } 
+        
+    }
     //Time For Half Beat [sec] = 60 [sec/min] / BPM / 2 [half-beats per beat]
-}
 
+}
 
 void switchBeatMode(){
     if(mode == 0){
                     printf("1\n");
         mode += 1;
+        
         // displayInt();
         //Do nothing
     }
     else if(mode == 1){
                     printf("2\n");
         mode += 1;
+        stopPlaying = false;
         rockBeat();
     }
     else if(mode == 2){
@@ -137,7 +153,68 @@ void switchBeatMode(){
 }
 
 void customBeat(){
+    while(!(stopPlaying)){
+        checkForButtonPress();
 
+        int halfBeat = getMsDelayPerBeat()/2;
+        AudioMixer_queueSound(&highHat);
+        AudioMixer_queueSound(&drum);
+        checkForButtonPress();
+        sleepForMs(halfBeat);
+        checkForButtonPress();
+        
+        AudioMixer_queueSound(&highHat);
+        checkForButtonPress();
+        sleepForMs(halfBeat);
+        checkForButtonPress();
+
+        AudioMixer_queueSound(&highHat);
+        AudioMixer_queueSound(&snare);
+        sleepForMs(halfBeat);
+        checkForButtonPress();
+
+        AudioMixer_queueSound(&highHat);
+        sleepForMs(halfBeat);
+        checkForButtonPress();
+
+        AudioMixer_queueSound(&highHat);
+        AudioMixer_queueSound(&drum);
+        sleepForMs(halfBeat);
+        checkForButtonPress();
+
+        AudioMixer_queueSound(&highHat);
+        sleepForMs(halfBeat);
+        checkForButtonPress();
+
+        AudioMixer_queueSound(&highHat);
+        AudioMixer_queueSound(&snare);
+        sleepForMs(halfBeat);
+        checkForButtonPress();
+
+        AudioMixer_queueSound(&highHat);
+        sleepForMs(halfBeat);
+        checkForButtonPress();
+        if(greenButtonPressed()){
+            while(greenButtonPressed()){};
+            AudioMixer_queueSound(&highHat);
+            sleepForMs(100);
+        }
+        if (redButtonPressed()){
+            while(redButtonPressed()){};
+            AudioMixer_queueSound(&drum);
+            sleepForMs(100);
+        }
+        if(yellowButtonPressed()){
+            while(yellowButtonPressed()){};
+            AudioMixer_queueSound(&snare);
+            sleepForMs(100);
+        } 
+        
+    }
+}
+
+int getMode(){
+    return mode;
 }
 
 void writingToGPIO(float value){

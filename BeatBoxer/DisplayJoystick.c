@@ -42,8 +42,6 @@ static void* displayJoystickValues(void* arg){
                 displayInt(volume);
             }
         } else if(0.5 < joyStickCalculationX()){ //right
-            //displayDec(3.3);
-            
             printf("bpm is %d\n", bpm);
             msDelayPerBeat -= 20; //delay sleepForMs(bpmInMs)
             bpm += 5;
@@ -59,8 +57,6 @@ static void* displayJoystickValues(void* arg){
             
 
         } else if(-0.5 > joyStickCalculationX()){ //left
-            //displayDec(4.4);
-            //printf("bpm is %d\n", bpm);
             msDelayPerBeat += 20;
             bpm -= 5;
             if (bpm < 40){
@@ -73,11 +69,16 @@ static void* displayJoystickValues(void* arg){
                 displayInt(bpm);
             }
             
-        } else{ //centre
-            displayInt(0);
-
+        }  else{
+            if(getMode() == 0){
+                displayMode("M0");
+            } else if(getMode() == 1){
+                displayMode("M1");
+            } else if(getMode() == 2){
+                displayMode("M2");
+            }
         }
-        sleepForMs(200);
+        sleepForMs(1000);
     }
     return NULL;
 }
