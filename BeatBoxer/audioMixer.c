@@ -27,7 +27,7 @@ static snd_pcm_t *handle;
 
 static unsigned long playbackBufferSize = 0;
 static short *playbackBuffer = NULL;
-
+static Interval_statistics_t *mixerStatistics;
 
 // Currently active (waiting to be played) sound bites
 #define MAX_SOUND_BITES 30
@@ -51,10 +51,9 @@ static pthread_mutex_t audioMutex = PTHREAD_MUTEX_INITIALIZER;
 
 static int volume = 0;
 
-
 void AudioMixer_init(void)
 {
-
+	mixerStatistics = malloc(sizeof(*mixerStatistics));
 	AudioMixer_setVolume(DEFAULT_VOLUME);
 
 	// Initialize the currently active sound-bites being played
@@ -358,17 +357,15 @@ int AudioMixer_getNumSamplesInterval(){
 
 void* playbackThread(void* _arg)
 {
-	Interval_statistics_t *mixerStatistics = malloc(sizeof(*mixerStatistics));
 
 	
 	while (!stopping) {
 		// Generate next block of audio
 		fillPlaybackBuffer(playbackBuffer, playbackBufferSize);
+
 		Interval_markInterval(INTERVAL_LOW_LEVEL_AUDIO);
 		Interval_getStatisticsAndClear(INTERVAL_LOW_LEVEL_AUDIO, mixerStatistics);
 		
-
-
 		// Output the audio
 		snd_pcm_sframes_t frames = snd_pcm_writei(handle,
 				playbackBuffer, playbackBufferSize);

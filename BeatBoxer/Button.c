@@ -24,11 +24,9 @@ pthread_t threadButton;
 static bool stopButton, stopPlaying, stopPlayingCustom = false;
 static wavedata_t drum, snare, highHat, gong;
 static int mode = 0;
+static Interval_statistics_t *beatBoxStatistics;
 
 static void* Button(void* arg){
-
-    Interval_statistics_t *beatBoxStatistics = malloc(sizeof(*beatBoxStatistics));
-
 
     AudioMixer_readWaveFileIntoMemory(drumSound, &drum);
     AudioMixer_readWaveFileIntoMemory(snareSound, &snare);
@@ -41,17 +39,17 @@ static void* Button(void* arg){
         } else if(redButtonPressed()){
             while(redButtonPressed()){};
             AudioMixer_queueSound(&drum);
-            Interval_markInterval(INTERVAL_BEAT_BOX);
+            markAndGetStatistic();
             sleepForMs(100);
         } else if(yellowButtonPressed()){
             while(yellowButtonPressed()){};
             AudioMixer_queueSound(&snare);
-            Interval_markInterval(INTERVAL_BEAT_BOX);
+            markAndGetStatistic();
             sleepForMs(100);
         } else if(greenButtonPressed()){
             while(greenButtonPressed()){};
             AudioMixer_queueSound(&highHat);
-            Interval_markInterval(INTERVAL_BEAT_BOX);
+            markAndGetStatistic();
             sleepForMs(100);
         }
         sleepForMs(10);
@@ -63,15 +61,28 @@ static void* Button(void* arg){
     return NULL;
 }
 
+void markAndGetStatistic(){
+    Interval_markInterval(INTERVAL_BEAT_BOX);
+    Interval_getStatisticsAndClear(INTERVAL_BEAT_BOX, beatBoxStatistics);
+}
+
 void printStats()
 {
-    printf("M%d %dbpm vol:%d  Low [%f  %f]",mode, getBPM(), 
+    printf("M%d %dbpm vol:%d  Low [%f  %f] avg %f / %d  Beat[%f  %f] avg %f / %d",mode, getBPM(), 
     AudioMixer_getVolume(), 
     AudioMixer_getMinInterval(), 
-    AudioMixer_getMaxInterval());
+    AudioMixer_getMaxInterval(),
+    AudioMixer_getAvgInterval(),
+    AudioMixer_getNumSamplesInterval(),
+    beatBoxStatistics->maxIntervalInMs,
+    beatBoxStatistics->minIntervalInMs,
+    beatBoxStatistics->avgIntervalInMs,
+    beatBoxStatistics->numSamples);
+    sleepForMs(1000);
 }
 
 void start_startButton(){
+    beatBoxStatistics = malloc(sizeof(*beatBoxStatistics));
     pthread_create(&threadButton, NULL, Button, NULL);
 }
 
@@ -93,56 +104,69 @@ void rockBeat(){
 
         int halfBeat = getMsDelayPerBeat()/2;
         AudioMixer_queueSound(&highHat);
-        
+        markAndGetStatistic();
         AudioMixer_queueSound(&drum);
+        markAndGetStatistic();
         checkForButtonPress();
         sleepForMs(halfBeat);
         checkForButtonPress();
         
         AudioMixer_queueSound(&highHat);
-        checkForButtonPress();
+        markAndGetStatistic();
         sleepForMs(halfBeat);
         checkForButtonPress();
 
         AudioMixer_queueSound(&highHat);
+        markAndGetStatistic();
         AudioMixer_queueSound(&snare);
+        markAndGetStatistic();
         sleepForMs(halfBeat);
         checkForButtonPress();
 
         AudioMixer_queueSound(&highHat);
+        markAndGetStatistic();
         sleepForMs(halfBeat);
         checkForButtonPress();
 
         AudioMixer_queueSound(&highHat);
+        markAndGetStatistic();
         AudioMixer_queueSound(&drum);
+        markAndGetStatistic();
         sleepForMs(halfBeat);
         checkForButtonPress();
 
         AudioMixer_queueSound(&highHat);
+        markAndGetStatistic();
         sleepForMs(halfBeat);
         checkForButtonPress();
 
         AudioMixer_queueSound(&highHat);
+        markAndGetStatistic();
         AudioMixer_queueSound(&snare);
+        markAndGetStatistic();
         sleepForMs(halfBeat);
         checkForButtonPress();
 
         AudioMixer_queueSound(&highHat);
+        markAndGetStatistic();
         sleepForMs(halfBeat);
         checkForButtonPress();
         if(greenButtonPressed()){
             while(greenButtonPressed()){};
             AudioMixer_queueSound(&highHat);
+            markAndGetStatistic();
             sleepForMs(100);
         }
         if (redButtonPressed()){
             while(redButtonPressed()){};
             AudioMixer_queueSound(&drum);
+            markAndGetStatistic();
             sleepForMs(100);
         }
         if(yellowButtonPressed()){
             while(yellowButtonPressed()){};
             AudioMixer_queueSound(&snare);
+            markAndGetStatistic();
             sleepForMs(100);
         } 
         
@@ -158,41 +182,52 @@ void customBeat(){
 
         int halfBeat = getMsDelayPerBeat()/2;
         AudioMixer_queueSound(&highHat);
+        markAndGetStatistic();
         AudioMixer_queueSound(&drum);
+        markAndGetStatistic();
         sleepForMs(halfBeat/2);
         
         sleepForMs(halfBeat/2);
         checkForButtonPress();
         AudioMixer_queueSound(&snare);
+        markAndGetStatistic();
         sleepForMs(halfBeat);
         checkForButtonPress();
          AudioMixer_queueSound(&highHat);
+         markAndGetStatistic();
         sleepForMs(halfBeat/4);
         checkForButtonPress();
         AudioMixer_queueSound(&highHat);
+        markAndGetStatistic();
          sleepForMs(halfBeat/4);
          checkForButtonPress();
          AudioMixer_queueSound(&highHat);
+         markAndGetStatistic();
          sleepForMs(halfBeat/2);
         checkForButtonPress();
         AudioMixer_queueSound(&snare);
+        markAndGetStatistic();
         
         AudioMixer_queueSound(&gong);
+        markAndGetStatistic();
         sleepForMs(halfBeat);
         checkForButtonPress();
         if(greenButtonPressed()){
             while(greenButtonPressed()){};
             AudioMixer_queueSound(&highHat);
+            markAndGetStatistic();
             sleepForMs(100);
         }
         if (redButtonPressed()){
             while(redButtonPressed()){};
             AudioMixer_queueSound(&drum);
+            markAndGetStatistic();
             sleepForMs(100);
         }
         if(yellowButtonPressed()){
             while(yellowButtonPressed()){};
             AudioMixer_queueSound(&snare);
+            markAndGetStatistic();
             sleepForMs(100);
         } 
     }
