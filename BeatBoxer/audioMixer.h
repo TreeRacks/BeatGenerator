@@ -30,8 +30,8 @@ void AudioMixer_queueSound(wavedata_t *pSound);
 int  AudioMixer_getVolume();
 void AudioMixer_setVolume(int newVolume);
 
-double AudioMixer_getMinInterval();
-double AudioMixer_getMaxInterval();
-double AudioMixer_getAvgInterval();
-int AudioMixer_getNumSamplesInterval();
+// double AudioMixer_getMinInterval();
+// double AudioMixer_getMaxInterval();
+// double AudioMixer_getAvgInterval();
+// int AudioMixer_getNumSamplesInterval();
 #endif

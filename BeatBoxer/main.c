@@ -20,10 +20,11 @@ int main(){
     exportAll4Button();
 
 
-    displayJoystick_startDisplay();
+    
     start_startButton();
     Interval_init();
     AudioMixer_init();
+    displayJoystick_startDisplay();
     char c;
     // printf("Enter 'Q' to quit.\n");
     while(true){
@@ -33,10 +34,11 @@ int main(){
         }
         sleepForMs(1000);
     }
+    AudioMixer_cleanup();
     displayJoystick_stopDisplay();
     stop_stopButton();
     Interval_cleanup();
-    AudioMixer_cleanup();
+    
     close(i2cFileDesc);
     printf("\nDone shutdown! Goodbye!\n");
     return 0;

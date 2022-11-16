@@ -27,7 +27,6 @@ static snd_pcm_t *handle;
 
 static unsigned long playbackBufferSize = 0;
 static short *playbackBuffer = NULL;
-static Interval_statistics_t mixerStatistics;
 
 // Currently active (waiting to be played) sound bites
 #define MAX_SOUND_BITES 30
@@ -305,7 +304,7 @@ static void fillPlaybackBuffer(short *buff, int size)
 	{
 		int *temp;
 		temp = malloc(size * sizeof(*temp)); //make some space for temp
-		memset(temp, 0, sizeof(*temp)); //clean it up before using
+		memset(temp, 0, size*sizeof(*temp)); //clean it up before using
 		for(int j = 0; j < size; j++){
 			
 			for(int i =0; i < MAX_SOUND_BITES; i++){ //soundBites
@@ -338,55 +337,15 @@ static void fillPlaybackBuffer(short *buff, int size)
 
 }
 
-double AudioMixer_getMinInterval(){
-	double min = 0.0;
-	pthread_mutex_lock(&audioMutex);
-	{
-		min = mixerStatistics.minIntervalInMs;
-	}
-	pthread_mutex_unlock(&audioMutex);
-	return min;
-}
-double AudioMixer_getMaxInterval(){
-	double max = 0.0;
-	pthread_mutex_lock(&audioMutex);
-	{
-		max = mixerStatistics.maxIntervalInMs;
-	}
-	pthread_mutex_unlock(&audioMutex);
-	return max;
-}
-double AudioMixer_getAvgInterval(){
-	double avg = 0.0;
-	pthread_mutex_lock(&audioMutex);
-	{
-		avg = mixerStatistics.avgIntervalInMs;
-	}
-	pthread_mutex_unlock(&audioMutex);
-	return avg;
-}
-int AudioMixer_getNumSamplesInterval(){
-	int numSample = 0;
-	pthread_mutex_lock(&audioMutex);
-	{
-		numSample = mixerStatistics.numSamples;
-	}
-	pthread_mutex_unlock(&audioMutex);
-	return numSample;
-}
-
 void* playbackThread(void* _arg)
 {
 
 	while (!stopping) {
 		// Generate next block of audio
 		fillPlaybackBuffer(playbackBuffer, playbackBufferSize);
-		pthread_mutex_lock(&audioMutex);
-		{
-			Interval_markInterval(INTERVAL_LOW_LEVEL_AUDIO);
-			Interval_getStatisticsAndClear(INTERVAL_LOW_LEVEL_AUDIO, &mixerStatistics);
-		}
-		pthread_mutex_unlock(&audioMutex);
+		
+		Interval_markInterval(INTERVAL_LOW_LEVEL_AUDIO);
+		
 		// Output the audio
 		snd_pcm_sframes_t frames = snd_pcm_writei(handle,
 				playbackBuffer, playbackBufferSize);

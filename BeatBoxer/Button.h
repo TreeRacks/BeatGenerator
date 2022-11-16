@@ -16,6 +16,6 @@ void switchBeatMode();
 void rockBeat();
 int getMode();
 void printStats();
-void markAndGetStatistic();
+void markStatistic();
 
 #endif

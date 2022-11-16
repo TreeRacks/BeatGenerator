@@ -43,7 +43,6 @@ static void* displayJoystickValues(void* arg){
                 displayInt(volume);
             }
         } else if(0.5 < joyStickCalculationX()){ //right
-            printf("bpm is %d\n", bpm);
             msDelayPerBeat -= 20; //delay sleepForMs(bpmInMs)
             bpm += 5;
             if(bpm > 300){
@@ -79,7 +78,7 @@ static void* displayJoystickValues(void* arg){
                 displayMode("M2");
             }
         }
-        sleepForMs(1000);
+        sleepForMs(500);
     }
     return NULL;
 }
