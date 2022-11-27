@@ -12,6 +12,8 @@ Beat generation program with GPIO buttons using USB Audio and ALSA.
 
 # Setup/Configuration 
 
+* NOTE: This program uses NFS to allow for the target to access the executable generated on the host. 
+
 * Configure pins on the BBG for I2C and GPIO by running the following commands on the target:
 ```
 config-pin i2c PX_XX
@@ -41,7 +43,7 @@ on your host.
 
 * This program is written entirely in C.
 * This program uses a `makefile` and generates an exectutable on the target. 
-    * Run `make` on the host to generate the executable.
+    * Run `make` on the host to generate the executable wave_player which will appear on your target's mounted folder. 
 
 # Possible Improvements
 ### IMPORTANT NOTE: This program should only operate smoothly if you supply it with .wav files (refer to the signal handling and /sounds/ folder).
