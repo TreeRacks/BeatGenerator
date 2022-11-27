@@ -40,8 +40,8 @@ on your host.
 # Implementation
 
 * This program is written entirely in C.
-* This program uses a `makefile` and generates an exectutable on the target.
-** Run `make` on the host to generate the executable.
+* This program uses a `makefile` and generates an exectutable on the target. 
+    * Run `make` on the host to generate the executable.
 
 # Possible Improvements
 ### IMPORTANT NOTE: This program should only operate smoothly if you supply it with .wav files (refer to the signal handling and /sounds/ folder).
